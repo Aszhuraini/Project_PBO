@@ -1,117 +1,133 @@
 import sqlite3
 
-class data_manager():
-    def __init__(self):
-        self.con = sqlite3.connect("laundry.sqlite")
-        self.cursor = self.con.cursor() #mengeksekusi perintah sql pd basisdata sqllite
-    def exe_query(self, query):
-        self.cursor.execute(query)
-        self.con.commit()
+connection = sqlite3.connect('laundry.db')
+cursor = connection.cursor()
 
-class table(data_manager):
-    def create_table_pelanggan(self):
-        self.query = """CREATE TABLE "pelanggan"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "nama_pelanggan" TEXT NOT NULL,
-            "alamat" TEXT NOT NULL,
-            "no_hp" TEXT NOT NULL,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
-
-    def create_table_work_order(self):
-        self.query = """CREATE TABLE "work_order"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "pelanggan" TEXT NOT NULL,
-            "work" TEXT NOT NULL,
-            "tanggal" TEXT NOT NULL,
-            "pembayaran" TEXT NOT NULL,
-            "status" TEXT NOT NULL,
-            "id_pelanggan" INTEGER NOT NULL,
-            "id_pembayaran" INTEGER NOT NULL,
-            "id_status" INTEGER NOT NULL,
-            FOREIGN KEY ("id_pelanggan") REFERENCES "pelanggan"("id"),
-            FOREIGN KEY ("id_pembayaran") REFERENCES "pembayaran"("id"),
-            FOREIGN KEY ("id_status") REFERENCES "status_pekerjaan"("id"),
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
-
-    def create_table_work(self):
-        self.query = """CREATE TABLE "work"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "total_harga" INTEGER NOT NULL,
-            "item_pakaian" TEXT NOT NULL,
-            "jenis_work" TEXT NOT NULL,
-            "kategori" TEXT NOT NULL,
-            "id_pelanggan" INTEGER NOT NULL,
-            "id_pakaian" INTEGER NOT NULL,
-            "id_kategori" INTEGER NOT NULL,
-            "id_jenis_work" INTEGER NOT NULL,
-            FOREIGN KEY ("id_pelanggan") REFERENCES "pelanggan"("id"),
-            FOREIGN KEY ("id_pakaian") REFERENCES "pakaian"("id"),
-            FOREIGN KEY ("id_kategori") REFERENCES "kategori"("id"),
-            FOREIGN KEY ("id_jenis_work") REFERENCES "jenis_work"("id"),
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def register():
+    global connection
+    username = input("masukkan username: ")
+    password = int(input("masukkan password: "))
+    query = f'INSERT INTO admin(username, password) VALUES ("{username}", "{password}")'
+    connection.execute(query)
+    connection.commit()
+    print('anda berhasil mendaftar')
     
-    def create_table_jenis_work(self):
-        self.query = """CREATE TABLE "jenis_work"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "express" BO0LEAN NOT NULL,
-            "slow" BOOLEAN NOT NULL,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
-    
-    def create_table_pakaian(self):
-        self.query = """CREATE TABLE "pakaian"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "total_berat" INTEGER NOT NULL,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def tambahDataPelanggan():
+    global connection
+    print("***MENAMBAH DATA PELANGGAN")
+    nama = input('Nama pelanggan: ')
+    jenis_kelamin = input('Jenis Kelamin pelanggan: ')
+    umur = (input('Umur Anda: '))
+    alamat = input('Alamat Anda: ')
+    queryStr = f'INSERT INTO pelanggan(nama, jenis_kelamin, umur, alamat) VALUES ("{nama}", "{jenis_kelamin}", "{umur}", "{alamat}")'
+    connection.execute(queryStr)
+    connection.commit();
+    print('data berhasil ditambah')
 
-    def create_table_kategori(self):
-        self.query = """CREATE TABLE "kategori"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "cuci_basah" BOOLEAN NOT NULL,
-            "cuci_kering" BOOLEAN NOT NULL,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def dataPelanggan():
+    global connection
+    for row in connection.execute('SELECT * FROM pelanggan'):
+        print("***MENAMPILKAN DATA PELANGGAN***")
+        print(row)
 
-    def create_table_pembayaran(self):
-        self.query = """CREATE TABLE "pembayaran"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "total_harga" INTEGER NOT NULL,
-            "tanggal" TEXT NOT NULL,
-            "id_pelanggan" INTEGER NOT NULL,
-            "id_work" INTEGER NOT NULL,
-            "nomor_kartu" INTEGER NOT NULL,
-            "id_cash" INTEGER NOT NULL,
-            FOREIGN KEY ("id_pelanggan") REFERENCES "pelanggan"("id"),
-            FOREIGN KEY ("id_work") REFERENCES "work"("id"),
-            FOREIGN KEY ("nomor_kartu") REFERENCES "pembayaran_kredit"("id"),
-            FOREIGN KEY ("id_cash") REFERENCES "pembayaran_cash"("id"),
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def updateDataPelanggan():
+    id = int(input("masukkan id pelanggan: "))
+    nama = input("masukkan nama baru: ")
+    jenis_kelamin = input("masukkan jenis kelamin baru: ")
+    umur = int(input("masukkan umur: "))
+    alamat = input("masukkan alamat: ")
+    query = '''UPDATE pelanggan SET nama = ?, jenis_kelamin = ?, umur = ?, alamat = ? WHERE id = ?'''
+    connection.execute(query, [nama, jenis_kelamin, umur, alamat, id])
+    connection.commit()
+    print('data berhasil diupdate')
 
-    def create_table_pembayaran_cash(self):
-        self.query = """CREATE TABLE "pembayaran_cash"(
-            "id" INTEGER NOT NULL UNIQUE,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def deleteDataPelanggan():
+    id = int(input('masukkan id: '))
+    query = f'DELETE FROM pelanggan WHERE id = ?'
+    connection.execute(query, [id])
+    connection.commit()
+    print('data berhasil dihapus')
 
-    def create_table_pembayaran_kredit(self):
-        self.query = """CREATE TABLE "pembayaran_kredit"(
-            "nomor_kartu" INTEGER NOT NULL UNIQUE,
-            PRIMARY KEY ("nomor_kartu" AUTOINCREMENT))"""
-        self.exe_query(self.query)
-    
-    def create_table_status_pekerjaan(self):
-        self.query = """CREATE TABLE "status_pekerjaan"(
-            "id" INTEGER NOT NULL UNIQUE,
-            "diterima" BOOLEAN NOT NULL,
-            "dicuci" BOOLEAN NOT NULL,
-            "selesai" BOOLEAN NOT NULL,
-            "diambil" BOOLEAN NOT NULL,
-            PRIMARY KEY ("id" AUTOINCREMENT))"""
-        self.exe_query(self.query)
+def tambahDataLaundry():
+    global connection
+    id_pelanggan = int(input('ID pelanggan: '))
+    jenis_cuci = input('Pilih Laundry Kering atau Laundry Basah? : ')
+    berat_baju = int(input('Berat Baju: '))
+    total_baju = int(input('Banyak Baju: '))
+    harga = int(input('Harga Laundry: '))
+    tanggal = input('Tanggal Reservasi: ') # Y-m-d H:i:s
+    query = f'INSERT INTO laundry(id_pelanggan, jenis_cuci, berat_baju, total_baju, harga, tanggal) VALUES ("{id_pelanggan}", "{jenis_cuci}", "{berat_baju}", "{total_baju}", "{harga}", "{tanggal}")'
+    connection.execute(query)
+    connection.commit()
 
-create_table = table()
+def dataLaundry():
+    global connection
+    for row in connection.execute('SELECT * FROM laundry JOIN pelanggan on laundry.id_pelanggan = pelanggan.id'):
+        print(row)
+
+class set_login:
+    def __init__(self,username = None, password = None):
+        self.username = username
+        self.password = password
+
+    def set_login_admin(self):
+        akun = []
+        query = 'SELECT * FROM admin WHERE username = username AND password = password'
+        connection.execute(query)
+        connection.commit()
+        result = connection.fetchone()
+        if(result):
+            akun.append(result)
+            print("Selamat datang")
+        else:
+            print("Username atau password salah")
+            return result
+
+while True:
+
+    print("-------TAMPILAN HOME LAUNDRY-------")
+    print("Pilihan Menu")
+    print(""" 
+        1. Login
+        2. Register
+    """)
+
+    pilihan = int(input("Pilihan : "))
+
+    if (pilihan == 1):
+        username = input('masukkan username anda: ')
+        password = input('masukkan password: ')
+        login = set_login(username, password).set_login_admin()
+
+        print("Pilihan Menu")
+        print("""
+            1. Tampilkan data pelanggan
+            2. Tampilkan data laundry
+            3. Tambahkan data pelanggan
+            4. Tambahkan data laundry
+            5. Ubah data pelanggan berdasarkan id
+            6. Delete data pelanggan berdasarkan id
+            7. Keluar
+        """)
+
+        pilihan = int(input('Pilihan: '))
+
+        if (pilihan == 1):
+            dataPelanggan()
+        elif (pilihan == 2):
+            dataLaundry()
+        elif (pilihan == 3):
+            tambahDataPelanggan()
+        elif (pilihan == 4):
+            tambahDataLaundry()
+        elif (pilihan == 5):
+            updateDataPelanggan()
+        elif (pilihan == 6):
+            deleteDataPelanggan()
+        elif (pilihan == 7):
+            break
+        else:
+            print('Menu tidak valid!')
+
+    elif (pilihan==2):
+        register()
