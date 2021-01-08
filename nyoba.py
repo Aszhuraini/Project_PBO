@@ -21,7 +21,6 @@ class table(data_manager):
             "umur" INTEGER NOT NULL,
             "nomor_telepon" INTEGER NOT NULL,
             "alamat" TEXT NOT NULL,
-            FOREIGN KEY("id_admin") REFERENCES "admin",
             PRIMARY KEY("id_pelanggan" AUTOINCREMENT))"""
         self.exe_query(self.query)
 
@@ -50,7 +49,7 @@ class table(data_manager):
         self.exe_query(self.query)
 
 # run the code to make the table
-#create_table = table()
+create_table = table()
 #create_table.create_table_admin()
 #create_table.create_table_pelanggan()
 #create_table.create_table_laundry()
@@ -66,23 +65,17 @@ class register (data_manager):
         self.con.close()
         print('data berhasil didaftarkan')
 
-akun = []
-class set_login(data_manager):
-    def __init__(self, username = None, password = None):
-        self.username = username
-        self.password = password
-    def set_login_admin(self):
-        query = 'SELECT username, password FROM admin WHERE username = ? AND password = ?'
-        cursor.execute(query, [self.username, self.password])
-        connection.commit()
-        result = cursor.fetchone()
-        if(result):
-            akun.append(result)
-            print("Selamat datang")
-        else:
-            print("Username atau password salah")
-            return result
-        connection.close()
+class login(data_manager):
+    def input_login(self):
+        self.username = input('masukkan username anda: ')
+        self.password = int(input('masukkan password: '))
+        for row in self.cursor.execute('SELECT * FROM admin WHERE username = username AND password = password'):
+            if self.username and self.password in row:
+                print("Anda Berhasil Login")
+    
+            else:
+                print('Data yang Anda Masukkan Salah')
+                return login().input_login()
 
 class admin(register):
 
@@ -117,13 +110,13 @@ class admin(register):
     
     def tambah_data_pelanggan(self):
         print("***MENAMBAH DATA PELANGGAN***")
-        self.__nama = input('Nama pelanggan: ')
+        self.__nama_pelanggan = input('Nama pelanggan: ')
         self.__jenis_kelamin = input('Jenis Kelamin pelanggan: ')
         self.__umur = int(input('Umur Pelanggan: '))
         self.__nomor_telepon = int(input('Nomor Telepon Pelanggan: '))
         self.__alamat = input('Alamat Pelanggan: ')
-        self.query = 'INSERT INTO pelanggan(nama, jenis_kelamin, umur, nomor_telepon, alamat) VALUES (?, ?, ?, ?, ?)'
-        self.cursor.execute(self.query, [self.__nama, self.__jenis_kelamin, self.__umur, self.__nomor_telepon, self.__alamat])
+        self.query = 'INSERT INTO pelanggan(nama_pelanggan, jenis_kelamin, umur, nomor_telepon, alamat) VALUES (?, ?, ?, ?, ?)'
+        self.cursor.execute(self.query, [self.__nama_pelanggan, self.__jenis_kelamin, self.__umur, self.__nomor_telepon, self.__alamat])
         self.con.commit()
         print('Data Pelanggan Berhasil Ditambah')
 
@@ -161,8 +154,8 @@ class admin(register):
         self.__berat_baju = int(input('Berat Baju: '))
         self.__total_baju = int(input('Banyak Baju: '))
         self.__harga = int(input('Harga Laundry: '))
-        self.__tanggal = int(input('Tanggal Reservasi: ')) # Y-M-D H:I:S
-        self.query = 'INSERT INTO laundry(jenis_cuci, berat_baju, total_baju, harga, tanggal) VALUES (?, ?, ?, ?, ?, ?) WHERE id_pelanggan = ?'
+        self.__tanggal = input('Tanggal Reservasi: ') # Y-M-D H:I:S
+        self.query = 'INSERT INTO laundry(jenis_cuci, berat_baju, total_baju, harga, tanggal) VALUES (?, ?, ?, ?, ?) WHERE id_pelanggan = ?'
         self.con.execute(self.query, [self.__jenis_cuci, self.__berat_baju, self.__total_baju, self.__harga, self.__tanggal, id_pelanggan])
         self.con.commit()
 
@@ -199,9 +192,9 @@ def main():
     2. Registrasi''')
         pilihan = input('masukkan pilihan anda: ')
         if pilihan == '1':
-            username = input('masukkan username anda: ')
-            password = input('masukkan password: ')
-            login = set_login(username, password).set_login_admin()
+            #username = input('masukkan username anda: ')
+            #password = int(input('masukkan password: '))
+            a = login().input_login()
             while True:
                 print("-----Pilihan Menu*****")
                 print("""
@@ -247,5 +240,6 @@ def main():
             print('menu tidak ada')
     return False
 
-#main()
-admin().get_data_admin()
+main()
+#admin().get_data_admin()
+#admin().tambah_data_pelanggan()
